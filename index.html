@@ -2,7 +2,14 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>商品成本計算器｜單機版</title>
+<title>商品成本計算器</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#186ab3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="成本計算">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 <style>
 :root{font-family:system-ui,-apple-system,"Microsoft JhengHei",sans-serif;color:#19283b;background:#f2f5fa}*{box-sizing:border-box}body{margin:0;padding:28px 14px}.wrap{max-width:760px;margin:auto;background:white;padding:30px;border-radius:20px;box-shadow:0 12px 38px #1c35541c}h1{font-size:28px;margin:0 0 8px}.desc{color:#59677b;margin:0 0 26px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}label{display:block;font-size:16px;font-weight:700;margin-bottom:8px}input{display:block;width:100%;font:inherit;font-size:24px;font-weight:600;padding:12px;border:1px solid #c7d2e0;border-radius:10px;background:#fff;color:#1b2e44}input:focus{outline:3px solid #d6eaff;border-color:#2677bb}.hint{font-size:13px;color:#67778a;margin-top:5px}.summary{border-top:1px solid #e2e7ef;margin-top:25px;padding-top:17px}.line{display:flex;justify-content:space-between;gap:12px;padding:10px 0;font-size:18px}.line strong{font-variant-numeric:tabular-nums;text-align:right}.total{margin-top:17px;border-radius:14px;background:#edf5ff;padding:20px}.total .title{font-size:17px;color:#40546c}.total .amount{font-size:36px;font-weight:800;word-break:break-word;color:#115ba0;margin-top:5px;font-variant-numeric:tabular-nums}.actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:20px}button{border:0;border-radius:10px;padding:12px 19px;font:inherit;font-weight:700;cursor:pointer}button.primary{background:#186ab3;color:#fff}button.secondary{background:#eef1f6;color:#304258}.formula{font-size:14px;color:#66788a;margin-top:22px;line-height:1.7}.error{color:#ba3030;font-size:14px;min-height:21px;margin:8px 0 0}@media(max-width:540px){.wrap{padding:19px}.grid{grid-template-columns:1fr}h1{font-size:24px}input{font-size:23px}.total .amount{font-size:30px}.line{font-size:16px}}
 </style>
@@ -26,4 +33,9 @@
 (()=>{'use strict';const ids=['usd','usdKrw','twdKrw','discount','grams','rate'];const el=id=>document.getElementById(id);const fmt=n=>'NT$ '+n.toLocaleString('zh-TW',{minimumFractionDigits:2,maximumFractionDigits:2});let result=null;
 function calc(){const values=ids.map(id=>el(id).value.trim()===''?NaN:Number(el(id).value));const [usd,usdKrw,twdKrw,discount,grams,rate]=values;const bad=values.some(x=>!Number.isFinite(x)||x<0)||twdKrw<=0;el('error').textContent=bad?'請輸入有效的非負數，且台幣韓匯必須大於 0。':'';if(bad){result=null;['subtotal','discounted','shipping','total'].forEach(id=>el(id).textContent='—');return;}const subtotal=usd*usdKrw/twdKrw,discounted=subtotal*discount/100,shipping=grams/100*rate,total=discounted+shipping;result={subtotal,discounted,shipping,total};Object.entries(result).forEach(([key,value])=>el(key).textContent=fmt(value));}
 ids.forEach(id=>el(id).addEventListener('input',calc));el('reset').addEventListener('click',()=>{ids.forEach(id=>el(id).value='');el('discount').value='100';calc();el('usd').focus();});el('copy').addEventListener('click',async()=>{if(!result)return;const output=`商品原價：${fmt(result.subtotal)}\n折扣後商品金額：${fmt(result.discounted)}\n重量費用：${fmt(result.shipping)}\n最終成本：${fmt(result.total)}`;try{await navigator.clipboard.writeText(output);el('copy').textContent='已複製';}catch{const t=document.createElement('textarea');t.value=output;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();el('copy').textContent=ok?'已複製':'請手動複製';}setTimeout(()=>el('copy').textContent='複製結果',1600);});calc();})();
+</script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.warn));
+}
 </script></body></html>
